@@ -1,0 +1,47 @@
+Как сервер устанавливает IDFA
+
+Сервер при каждом запуске приложения получает info от клиента, в котором ожидает получить поле idfa. Если параметра нет, то устанавливает либо из info в перманенте, либо дефолтный - NOT_SET. Затем сервер ожидает от клиента ивента setIdfa, в котором он получает idfa и устанавливает его в нужные места (в перманент профайл и актуальный info).
+
+2320-DO4: платёж 5 октября
+
+Получаем info при запуске:
+
+05.10.2021 12:47:36 [DEBUG][2] :: user{2320-DO4} (AtlantisMobileStartPacketInfoProcessor) :: Received info: {device_model=LM-G900, platform=android, version-code=170, device_language=en, version-name=1.29.1, device-id=ffffffff-a5fc-28d6-0000-5a03d729ffff, device_brand=lge, game_language=en, advertiser-tracking-enabled=0, appsflyer-device-id=1633417196329-8694447484858554100, os_version=11}, level: 8, last location: per_02_foothills, last quest: Q_SHOP_MAIN_CAMPFIRE
+В info есть параметр advertiser-tracking-enabled=0 (запрет тренкинга), параметр idfa отсутствует. В info перманента idfa нет, поэтому установка NOT_SET.
+
+После совершения платежа отправлен ивент с idfa=NOT_SET в апсфлаер:
+
+05.10.2021 12:49:58 [DEBUG][2] :: pool-11-thread-1 (AppsflyerStatistics) :: posted event to Appsflyer with answer HTTP/1.1 200 OK, entity: {"eventValue":"{\"iap_id\":\"vizor_atlantis_OFFER_TRIG_NO_PAYER_BONUS_2\",\"quest\":\"Q_PER_03_CLOUDHILLS_01\",\"offer\":\"offer\",\"gametime\":114,\"last_purchase_delta_time\":-1,\"previous_purchases_count\":0}","os":"11","af_events_api":"true","eventTime":"2021-10-05 19:49:58.222","advertising_id":"NOT_SET","appsflyer_id":"1633417196329-8694447484858554100","eventName":"Purchase 1","customer_user_id":"2320-DO4"}
+ 
+
+6755-DJ4: платёж 26 сентября
+
+Получаем info при запуске:
+
+26.09.2021 09:34:52 [DEBUG][4] :: user{6755-DJ4} (AtlantisMobileStartPacketInfoProcessor) :: Received info: {device_model=SM-N986U, platform=android, version-code=166, device_language=en, version-name=1.28.1, device-id=ffffffff-becf-0aea-0000-4130f515ffff, device_brand=samsung, game_language=en, advertiser-tracking-enabled=0, appsflyer-device-id=1632674066485-6589227472464386052, os_version=11}, level: 1, last location: main, last quest: Q_MAIN_1
+Есть параметр advertiser-tracking-enabled=0 (запрет трекинга), параметр idfa отсутствует. В info перманента idfa нет, поэтому установка NOT_SET.
+
+После совершения платежа отправлен ивент с idfa=NOT_SET в апсфлаер:
+
+26.09.2021 09:55:17 [DEBUG][4] :: pool-11-thread-1 (AppsflyerStatistics) :: posted event to Appsflyer with answer HTTP/1.1 200 OK, entity: {"eventValue":"{\"iap_id\":\"starter_pack_cash_3\",\"quest\":\"Q_PER_01_JUNGLE_11\",\"offer\":\"bundle\",\"gametime\":20,\"last_purchase_delta_time\":-1,\"previous_purchases_count\":0}","os":"11","af_events_api":"true","eventTime":"2021-09-26 16:55:16.224","advertising_id":"NOT_SET","appsflyer_id":"1632674066485-6589227472464386052","eventName":"Purchase 1","customer_user_id":"6755-DJ4"}
+ 
+
+4462-FB2: платёж 12 октября
+
+Получаем info при запуске:
+
+12.10.2021 03:31:19 [DEBUG][5] :: user{4462-FB2} (AtlantisMobileStartPacketInfoProcessor) :: Received info: {device_model=SM-N960N, platform=android, version-code=170, device_language=ko, version-name=1.29.1, device-id=00000000-451d-168f-ffff-bae2e970ffff, device_brand=samsung, game_language=ko, advertiser-tracking-enabled=0, appsflyer-device-id=1632330000243-9198530576993893459, os_version=10}, level: 17, last location: generation_location_18, last quest: Q_PER_20_DREAM_13
+Есть параметр advertiser-tracking-enabled=0 (запрет трекинга), параметр idfa отсутствует. В info перманента idfa нет, поэтому установка NOT_SET.
+
+После совершения платежа отправлен ивент с idfa=NOT_SET в апсфлаер:
+
+12.10.2021 03:42:32 [DEBUG][5] :: pool-11-thread-1 (AppsflyerStatistics) :: posted event to Appsflyer with answer HTTP/1.1 200 OK, entity: {"eventValue":"{\"af_revenue\":65000,\"af_currency\":\"KRW\",\"af_content_type\":\"vizor_atlantis_offer_global_8_prize_payer_4_c\",\"af_quantity\":1,\"level\":17,\"iap id\":\"vizor_atlantis_offer_global_8_prize_payer_4_c\",\"offer\":\"offer_global\",\"days played\":19,\"quest\":\"Q_PER_20_DREAM_14\"}","os":"10","af_events_api":"true","eventTime":"2021-10-12 10:42:32.191","advertising_id":"NOT_SET","appsflyer_id":"1632330000243-9198530576993893459","eventName":"af_purchase","customer_user_id":"4462-FB2","eventCurrency":"USD"}
+Что объединяет
+
+У игроков в стартовых параметрах от клиента установлен параметр запрета трекинга - advertiser-tracking-enabled=0, отсутствует IDFA. При этом в профайле от апсфлаера (например, с ивента install) выставлен IDFA. Мы это значение не берём специально, проверяем только место INFO.
+
+Проверил мобильный клондайк. Если idfa от клиента не приходит, то там смотрят только INFO, апсфлаер профайл не проверяется. То есть в этом плане у нас всё совпадает.
+
+Вопрос для Анатолий Гребень : имеем ли мы право использовать idfa из профайла от апсфлаера (который когда-то давно установили на install) при отключенном трекинге у игрока?
+
+Если можем, то добавим к проверке INFO ещё и профиль апсфлаера. Если от клиента не будет приходить idfa, но в апсфлаер профайле он будет, то в idfa будем устанавливать значение из apsflyer профайла.
